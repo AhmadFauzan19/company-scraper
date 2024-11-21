@@ -70,26 +70,8 @@ export async function scrapeCompanyWebsite(url: string): Promise<string> {
         }
     }
 
-    // Function to limit the word count of the text
-    async function limitWords(text: string, maxWords: number): Promise<string> {
-      if (!text || typeof text !== 'string') {
-          throw new Error("Invalid input text");
-      }
-  
-      const words = text.trim().split(/\s+/); // Split text into words
-      if (words.length > maxWords) {
-          console.log(`Truncating text to ${maxWords} words (original word count: ${words.length})`);
-      }
-  
-      return words.slice(0, maxWords).join(" "); // Return truncated text
-  }
-  
-
-    const cleanedText = await limitWords(mainText, 3000); // Set word limit to 7000
-
-    console.log(cleanedText);
-
     await browser.close();
 
-    return cleanedText;
+    return mainText;
 }
+
