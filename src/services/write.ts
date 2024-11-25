@@ -13,7 +13,7 @@ export async function appendToExcel(
 
   console.log("Adding custom fields to the new data...");
   // Check if the file exists and if there is existing data
-  const filePath = path.join(__dirname, "../file/", "Output Data.xlsx");
+  const filePath = path.join(__dirname, "../file/", "Output Data 3.xlsx");
   console.log("File path set to:", filePath);
 
   // Check if the file exists

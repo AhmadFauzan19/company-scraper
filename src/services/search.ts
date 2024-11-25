@@ -7,7 +7,9 @@ const socialMediaDomains = [
   "youtube.com",
   "facebook.com",
   "linkedin.com",
-  "tiktok.com"
+  "tiktok.com",
+  "pinterest.com",
+  "jobstreet.com"
 ];
 
 export async function searchAndOpenTopLinks(keyword: string): Promise<string[] | null> {
@@ -33,26 +35,46 @@ export async function searchAndOpenTopLinks(keyword: string): Promise<string[] |
   }
 
   // Wait for search results to load
-  await page.waitForSelector('#search', {timeout: 10000});
+  await page.waitForSelector('#search', { timeout: 10000 });
 
-  // Get the top 3 search results
-  const links = await page.evaluate(() => {
-    const anchorTags = Array.from(document.querySelectorAll('a h3'));
-    return anchorTags.slice(0, 5).map(anchor => {
-      const parentAnchor = anchor.parentElement as HTMLAnchorElement;
-      return parentAnchor.href;
+  const filteredLinks: string[] = [];
+
+  // Get the top search results and filter out social media links
+  while (filteredLinks.length < 5) {
+    const newLinks = await page.evaluate(() => {
+      const anchorTags = Array.from(document.querySelectorAll('a h3'));
+      return anchorTags.map(anchor => {
+        const parentAnchor = anchor.parentElement as HTMLAnchorElement;
+        return parentAnchor.href;
+      });
     });
-  });
 
-  // Filter out social media links
-  const filteredLinks = links.filter(link => {
-    return !socialMediaDomains.some(domain => link.includes(domain));
-  });
+    // Filter out social media links and add new valid links to the result
+    for (const link of newLinks) {
+      if (!socialMediaDomains.some(domain => link.includes(domain)) && !filteredLinks.includes(link)) {
+        filteredLinks.push(link);
+        if (filteredLinks.length === 5) break;
+      }
+    }
+
+    // Break out of the loop if there are no more results to process
+    if (filteredLinks.length < 5) {
+      try {
+        // Try to navigate to the next page of results
+        const nextButtonSelector = '#pnnext';
+        await page.click(nextButtonSelector);
+        await page.waitForSelector('#search', { timeout: 5000 });
+      } catch (error) {
+        console.warn('No more results available.');
+        break;
+      }
+    }
+  }
 
   // Close the browser
   await browser.close();
 
   console.log(filteredLinks);
 
-  return filteredLinks;
+  return filteredLinks.length ? filteredLinks : null;
 }

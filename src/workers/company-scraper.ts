@@ -5,6 +5,8 @@ import { readExcel } from "../services/excel";
 import { appendToExcel } from "../services/write";
 import { extractJsonFromString } from "../services/convert";
 import { cutTextToWordLimit } from "../services/words-limit";
+import { checkValidation } from "../services/check";
+import { filterScraper } from "../services/relevancy";
 
 // Retry utility to attempt an async task multiple times
 async function retry<T>(fn: () => Promise<T>, retries: number = 3, delay: number = 2000): Promise<T | undefined> {
@@ -27,7 +29,7 @@ async function retry<T>(fn: () => Promise<T>, retries: number = 3, delay: number
   let rawText: string = "";
   let urls: string[] = [];
 
-  const companyNames = await readExcel("./src/file/Sample Sisa.xlsx");
+  const companyNames = readExcel("./src/file/Sample Sisa 3.xlsx");
 
   if (companyNames && companyNames.length > 0) {
     for (const companyName of companyNames) {
@@ -55,21 +57,27 @@ async function retry<T>(fn: () => Promise<T>, retries: number = 3, delay: number
         for (const url of urls) {
           try {
             console.log(`Scraping URL: ${url}`);
-            rawText += await retry(() => scrapeCompanyWebsite(url), 3);
+            const tempRawText = await retry(() => scrapeCompanyWebsite(url), 3);
+            const cutTempRawText = await cutTextToWordLimit(tempRawText!, 8000);
+
+            rawText += await filterScraper(cutTempRawText!, companyName!)
           } catch (error) {
             console.error(`Error scraping URL ${url}:`, error);
             continue; // Skip to the next URL if this one fails
           }
         }
 
-        const cutRawText = await cutTextToWordLimit(rawText, 2000);
+        const cutRawText = await cutTextToWordLimit(rawText, 8000);
         console.log(cutRawText);
 
         // Extract company profile information
         const companyInfo = await extractCompanyProfile(cutRawText);
         console.log("\nExtracted Company Info:\n\n", companyInfo);
 
-        const companyInfoFormatted = await extractJsonFromString(companyInfo);
+        const finalData = await checkValidation(companyInfo)
+        console.log("\nCheck Data:", finalData)
+
+        const companyInfoFormatted = await extractJsonFromString(finalData);
         console.log(`Formatted: ${companyInfoFormatted}`);
 
         // Write the extracted data to the Excel file

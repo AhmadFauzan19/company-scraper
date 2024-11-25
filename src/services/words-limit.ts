@@ -1,13 +1,22 @@
 export async function cutTextToWordLimit(text: string, wordLimit: number): Promise<string> {
-    // Split the text into an array of words
-    const words = text.split(/\s+/);  // Split by whitespace characters
-  
-    // Check if the word count exceeds the limit, if so, slice the array
-    const wordsToKeep = words.slice(0, wordLimit);
-  
-    // Join the words back into a single string
-    const truncatedText = wordsToKeep.join(' ');
-  
-    return truncatedText;
+  if (wordLimit <= 0) {
+      throw new Error("Word limit must be greater than 0");
   }
-  
+
+  // Use a generator approach to handle large texts efficiently
+  const words: string[] = [];
+  let wordCount = 0;
+
+  // Efficiently split the text into words without creating unnecessary intermediate arrays
+  for (const word of text.split(/\s+/)) {
+      if (wordCount < wordLimit) {
+          words.push(word);
+          wordCount++;
+      } else {
+          break; // Stop once the limit is reached
+      }
+  }
+
+  // Join the words back into a single string
+  return words.join(' ');
+}
