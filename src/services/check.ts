@@ -15,19 +15,29 @@ const openai = new OpenAI({
 export async function checkValidation(text: string): Promise<any> {
   try {
     const prompt = `
-    i scrape data from website, i want you to check the validation especially of email and phone
+    I need you to validate email addresses and phone numbers extracted from a website. Here's the input:
 
-    Text: 
+    Input Text:
     ${text}
 
-    if it is not valid, you can delete it, and make it empty
+    Validation Rules:
     
-    if the key is empty, let it empty, do not add with another word or code
+    Email:
 
-    **Output Format**: Return the information in **valid JSON format** look like the input.
+    Must follow the standard email format (e.g., example@domain.com).
+    If invalid, remove it and set the field to an empty string ("").
+
+    Phone Number:
+
+    Must be a valid phone number (include country code if applicable).
+    If invalid, remove it and set the field to an empty string ("").
+    If any key in the input is already empty, leave it as is. Do not replace it with any value or code.
+
+    Output Format:
+    Return the validated data in valid JSON format, following the structure of the input.
 `;
     const response = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-4o-mini",
       messages: [{ role: "system", content: "You are an assistant that extracts company profiles." }, { role: "user", content: prompt }],
       temperature: 0.7,
     });

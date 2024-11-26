@@ -15,19 +15,25 @@ const openai = new OpenAI({
 export async function filterScraper(text: string, companyName: string): Promise<any> {
   try {
     const prompt = `
-    i scrape data from website, i want you to cut the unnecessary text and take the text that provide information about the company based on company name: ${companyName}
+    I need you to extract only the relevant information about the company based on the company name: ${companyName}.
 
-    Text: 
+    Input Text:
     ${text}
 
-    if the text is not a legit information about the company, just cut it, and send the text who contains the data about company
+    Instructions:
+    Identify and retain only the text that provides legitimate information about the company.
+    Match the data with the company name. If the data do not match with company name, exclude it except there is a sentence that the company name match the data.
+    This includes details such as its description, services, activities, or industry.
+    Remove any unrelated or irrelevant text that does not pertain directly to the company or its operations.
 
-    **Output Format**: Return the information in paragraph.
+    If you cannot find relevant data, just let it empty!!!
 
-    !!IMPORTANT: just give the output about the company information, do not add something else
+    Output Format:
+    Return the extracted company information as a concise paragraph.
+    IMPORTANT: Only include valid company information. Do not add any additional text or commentary.
 `;
     const response = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-4o-mini",
       messages: [{ role: "system", content: "You are an assistant that extracts company profiles." }, { role: "user", content: prompt }],
       temperature: 0.7,
     });

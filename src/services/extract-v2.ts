@@ -59,7 +59,7 @@ export async function extractCompanyProfile(text: string): Promise<any> {
     !!!JUST PRINT ON OF THEM!!!
 `;
     const response = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-4o-mini",
       messages: [{ role: "system", content: "You are an assistant that extracts company profiles." }, { role: "user", content: prompt }],
       temperature: 0.7,
     });
