@@ -35,7 +35,6 @@ export async function filterScraper(text: string, companyName: string): Promise<
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [{ role: "system", content: "You are an assistant that extracts company profiles." }, { role: "user", content: prompt }],
-      temperature: 0.7,
     });
 
     const completion = response.choices[0].message?.content;
